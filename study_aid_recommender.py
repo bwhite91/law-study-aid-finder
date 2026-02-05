@@ -43,13 +43,24 @@ st.markdown("""
         margin-bottom: 8px;
         margin-top: 20px;
     }
+    /* Question 3 content descriptions should be bold */
+    .content-description {
+        font-weight: bold;
+        margin-bottom: 4px;
+        margin-top: 12px;
+    }
+    /* All radio button options should be normal weight */
+    div[data-testid="stRadio"] label p {
+        font-weight: normal;
+    }
+    /* Checkbox labels should also be normal weight */
     div[data-testid="stCheckbox"] label p {
         font-size: 0.95em;
         font-weight: normal;
     }
-    div[data-testid="stRadio"] label p {
-        font-size: 1em;
-        font-weight: bold;
+    /* Horizontal radio button options (Must Have, Neutral, etc.) */
+    div[data-testid="stRadio"] div[role="radiogroup"] label {
+        font-weight: normal !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -263,15 +274,18 @@ def main():
         
         preferences = {}
         
-        # Show full text for each content type option
+        # Show full text for each content type option with bold descriptions
         for i, (question, info) in enumerate(CONTENT_MAPPING.items()):
-            # Display full question text without truncation
+            # Display the description in bold as a separate element
+            st.markdown(f'<p class="content-description">{question}</p>', unsafe_allow_html=True)
+            # Radio button with hidden label
             preferences[question] = st.radio(
-                question,  # Show complete text
+                question,  # Keep for accessibility, but will style to hide
                 ["Must Have", "Neutral", "Do Not Want"],
                 index=1,  # Default to Neutral
                 key=f"pref_{i}",
-                horizontal=True
+                horizontal=True,
+                label_visibility="collapsed"  # Hide the label since we show it above
             )
         
         # Submit button
