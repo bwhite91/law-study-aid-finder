@@ -37,26 +37,19 @@ st.markdown("""
         color: #6c757d;
         font-style: italic;
     }
-    .score-badge {
-        background-color: #1f77b4;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.9em;
-        font-weight: bold;
-        display: inline-block;
-        margin-bottom: 10px;
-    }
     .question-text {
         font-size: 1.1em;
         font-weight: bold;
         margin-bottom: 8px;
         margin-top: 20px;
     }
-    div[data-testid="stCheckbox"] label p,
-    div[data-testid="stRadio"] label p {
+    div[data-testid="stCheckbox"] label p {
         font-size: 0.95em;
         font-weight: normal;
+    }
+    div[data-testid="stRadio"] label p {
+        font-size: 1em;
+        font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -181,7 +174,7 @@ def display_results(results: List[Dict]):
     
     st.markdown("---")
     st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
-    st.markdown("Resources are sorted by match score (highest first), then alphabetically.")
+    st.markdown("Resources are displayed according to how well the resource matches your preferences.")
     
     for idx, result in enumerate(results, 1):
         resource = result['resource']
@@ -189,10 +182,6 @@ def display_results(results: List[Dict]):
         
         # Create the resource card
         with st.container():
-            # Score badge
-            st.markdown(f'<div class="score-badge">Match Score: {score_info["score"]}</div>', 
-                       unsafe_allow_html=True)
-            
             # Title and Publisher
             title = resource['Title to Display']
             publisher = resource['Publisher']
