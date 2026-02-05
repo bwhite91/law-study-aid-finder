@@ -47,6 +47,17 @@ st.markdown("""
         display: inline-block;
         margin-bottom: 10px;
     }
+    .question-text {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 8px;
+        margin-top: 20px;
+    }
+    div[data-testid="stCheckbox"] label p,
+    div[data-testid="stRadio"] label p {
+        font-size: 0.95em;
+        font-weight: normal;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -115,16 +126,26 @@ def filter_by_subject(df: pd.DataFrame, subject: str) -> pd.DataFrame:
     """Filter resources by subject"""
     return df[df[subject].str.lower() == 'x']
 
-def filter_by_format(df: pd.DataFrame, format_choice: str) -> pd.DataFrame:
-    """Filter resources by study format"""
+def filter_by_format(df: pd.DataFrame, format_choices: List[str]) -> pd.DataFrame:
+    """Filter resources by study format (supports multiple selections)"""
+    if not format_choices:
+        return df
+    
     format_mapping = {
         "Digital book/e-book": "Digital Access Available",
         "Video Lectures": "Video",
         "Audio Lectures": "Audio",
         "Physical book": "Physical Item in Library Collection"
     }
-    column = format_mapping[format_choice]
-    return df[df[column].str.lower() == 'x']
+    
+    # Create a mask that is True for any row that matches ANY of the selected formats
+    mask = pd.Series([False] * len(df), index=df.index)
+    
+    for format_choice in format_choices:
+        column = format_mapping[format_choice]
+        mask = mask | (df[column].str.lower() == 'x')
+    
+    return df[mask]
 
 def calculate_score(row: pd.Series, preferences: Dict[str, str]) -> Dict:
     """Calculate score based on content preferences"""
@@ -222,31 +243,42 @@ def main():
     
     # Create the questionnaire
     with st.form("study_aid_questionnaire"):
-        st.markdown("## Question 1: Subject")
+        st.markdown('<p class="question-text">1. What subject are you studying? (Select one)</p>', unsafe_allow_html=True)
         subject = st.radio(
-            "What subject are you studying?",
+            "Select subject:",
             ["Civil Procedure", "Contracts"],
-            index=None
+            index=None,
+            label_visibility="collapsed"
         )
         
-        st.markdown("## Question 2: Study Format")
-        study_format = st.radio(
-            "How do you prefer to study?",
-            ["Digital book/e-book", "Video Lectures", "Audio Lectures", "Physical book"],
-            index=None
-        )
+        st.markdown('<p class="question-text">2. How do you prefer to study? (Select all that apply)</p>', unsafe_allow_html=True)
         
-        st.markdown("## Question 3: Content Preferences")
-        st.markdown("Select your preference for each type of content:")
+        # Use checkboxes for multi-select
+        study_formats = []
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.checkbox("Digital book/e-book", key="format_digital"):
+                study_formats.append("Digital book/e-book")
+            if st.checkbox("Video Lectures", key="format_video"):
+                study_formats.append("Video Lectures")
+        
+        with col2:
+            if st.checkbox("Audio Lectures", key="format_audio"):
+                study_formats.append("Audio Lectures")
+            if st.checkbox("Physical book", key="format_physical"):
+                study_formats.append("Physical book")
+        
+        st.markdown('<p class="question-text">3. What specific content do you want to see in your study aid?</p>', unsafe_allow_html=True)
+        st.markdown("Select 'Must Have,' 'Neutral,' or 'Do Not Want' for each:")
         
         preferences = {}
         
-        # Create 3 columns for better layout
+        # Show full text for each content type option
         for i, (question, info) in enumerate(CONTENT_MAPPING.items()):
-            # Use shorter labels for the questions
-            short_label = question[:80] + "..." if len(question) > 80 else question
+            # Display full question text without truncation
             preferences[question] = st.radio(
-                short_label,
+                question,  # Show complete text
                 ["Must Have", "Neutral", "Do Not Want"],
                 index=1,  # Default to Neutral
                 key=f"pref_{i}",
@@ -262,15 +294,15 @@ def main():
         if not subject:
             st.error("Please select a subject.")
             return
-        if not study_format:
-            st.error("Please select a study format.")
+        if not study_formats:
+            st.error("Please select at least one study format.")
             return
         
         # Filter by subject
         filtered_df = filter_by_subject(df, subject)
         
-        # Filter by format
-        filtered_df = filter_by_format(filtered_df, study_format)
+        # Filter by format (now handles multiple selections)
+        filtered_df = filter_by_format(filtered_df, study_formats)
         
         # Calculate scores for each resource
         results = []
