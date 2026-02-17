@@ -1,5 +1,25 @@
 # Changelog - Law Study Aid Finder Updates
 
+## Version 1.6 - January 29, 2026
+
+### Bug Fixes
+
+#### 1. Fixed "Open Results in New Page" Button ✅
+**Issue**: Button didn't work and showed a bracket next to it
+**Cause**: JavaScript approach incompatible with Streamlit's security model
+**Fix**: Switched to Streamlit's native download_button component
+
+**How it works now:**
+- Click "📄 Open Results in New Page" button
+- HTML file downloads to your computer
+- Open the downloaded file in your browser
+- Click the blue "Click here to open the print dialog" link
+- Choose "Save as PDF" as your printer
+
+More reliable and works across all browsers.
+
+---
+
 ## Version 1.5 - January 29, 2026
 
 ### Bug Fixes & Layout Updates
@@ -8,6 +28,7 @@
 **Issue**: "Open Results in New Page" button opened a blank page
 **Fix**: Changed from data URI approach to JavaScript window.open method
 **Result**: Results now properly display in new tab with all content visible
+**Note**: This approach had issues - see Version 1.6 for final fix
 
 #### 2. Question 2 Layout Updated ✅
 **Before**: Checkboxes in 2x2 grid layout
@@ -16,8 +37,8 @@
 **New order:**
 1. Digital book/e-book
 2. Physical book
-3. Audio Lectures
-4. Video Lectures
+3. Audio lectures
+4. Video lectures
 
 Cleaner, more readable vertical layout for study format selection.
 

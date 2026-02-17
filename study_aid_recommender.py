@@ -322,28 +322,16 @@ def display_results(results: List[Dict], subject: str = None, formats: List[str]
     st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
     st.markdown("Resources are displayed according to how well the resource matches your preferences.")
     
-    # Add button to open results in new page (moved under description)
+    # Add button to download results as HTML (which opens in browser)
     if subject and formats:
-        import json
         pdf_html = generate_pdf_html(results, subject, formats)
-        # Escape the HTML for JavaScript
-        escaped_html = json.dumps(pdf_html)
         
-        st.markdown(
-            f"""
-            <script>
-            function openResultsPage() {{
-                var newWindow = window.open('', '_blank');
-                newWindow.document.write({escaped_html});
-                newWindow.document.close();
-            }}
-            </script>
-            <button onclick="openResultsPage()" style="display: inline-block; padding: 0.5rem 1rem; 
-            background-color: #1f77b4; color: white; border: none; border-radius: 0.3rem; 
-            font-weight: 500; margin-top: 0.5rem; margin-bottom: 1rem; cursor: pointer; 
-            font-size: 1rem;">📄 Open Results in New Page</button>
-            """,
-            unsafe_allow_html=True
+        st.download_button(
+            label="📄 Open Results in New Page",
+            data=pdf_html,
+            file_name="study_aid_recommendations.html",
+            mime="text/html",
+            help="Downloads an HTML file. Open it in your browser to view and print."
         )
     
     for idx, result in enumerate(results, 1):
