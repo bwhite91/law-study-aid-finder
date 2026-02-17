@@ -154,37 +154,166 @@ def filter_by_format(df: pd.DataFrame, format_choices: List[str]) -> pd.DataFram
 def calculate_score(row: pd.Series, preferences: Dict[str, str]) -> Dict:
     """Calculate score based on content preferences"""
     score = 0
-    must_have_matches = []
-    neutral_matches = []
+    strongly_preferred_matches = []
+    somewhat_preferred_matches = []
     
     for question, info in CONTENT_MAPPING.items():
         column = info["column"]
         display = info["display"]
-        preference = preferences.get(question, "Do Not Want")
+        preference = preferences.get(question, "No Preference")
         
         # Check if resource has this content type
         if row[column] and str(row[column]).lower() == 'x':
-            if preference == "Must Have":
+            if preference == "Strongly Preferred":
                 score += 1
-                must_have_matches.append(display)
-            elif preference == "Neutral":
+                strongly_preferred_matches.append(display)
+            elif preference == "Somewhat Preferred":
                 score += 0.5
-                neutral_matches.append(display)
+                somewhat_preferred_matches.append(display)
     
     return {
         "score": score,
-        "must_have": must_have_matches,
-        "neutral": neutral_matches
+        "strongly_preferred": strongly_preferred_matches,
+        "somewhat_preferred": somewhat_preferred_matches
     }
 
-def display_results(results: List[Dict]):
+def generate_pdf_html(results: List[Dict], subject: str, formats: List[str]) -> str:
+    """Generate HTML content for PDF export"""
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                line-height: 1.6;
+            }}
+            h1 {{
+                color: #1f77b4;
+                border-bottom: 3px solid #1f77b4;
+                padding-bottom: 10px;
+            }}
+            h2 {{
+                color: #333;
+                margin-top: 30px;
+            }}
+            .criteria {{
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+            }}
+            .resource {{
+                border-left: 4px solid #1f77b4;
+                padding: 15px;
+                margin-bottom: 20px;
+                background-color: #f8f9fa;
+                page-break-inside: avoid;
+            }}
+            .resource-title {{
+                font-size: 1.2em;
+                font-weight: bold;
+                color: #1f77b4;
+                margin-bottom: 10px;
+            }}
+            .strongly-preferred {{
+                color: #28a745;
+                font-weight: 500;
+            }}
+            .somewhat-preferred {{
+                color: #6c757d;
+                font-style: italic;
+            }}
+            .links {{
+                margin-top: 10px;
+            }}
+            .links a {{
+                color: #1f77b4;
+                text-decoration: none;
+                margin-right: 15px;
+            }}
+            @media print {{
+                body {{ margin: 20px; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>📚 Your Recommended Study Aids</h1>
+        
+        <div class="criteria">
+            <strong>Your Selections:</strong><br>
+            <strong>Subject:</strong> {subject}<br>
+            <strong>Study Formats:</strong> {', '.join(formats)}<br>
+            <strong>Results Found:</strong> {len(results)}
+        </div>
+        
+        <h2>Recommended Resources</h2>
+        <p>Resources are displayed according to how well they match your preferences.</p>
+    """
+    
+    for idx, result in enumerate(results, 1):
+        resource = result['resource']
+        score_info = result['score_info']
+        
+        title = resource['Title to Display']
+        publisher = resource['Publisher']
+        
+        html += f"""
+        <div class="resource">
+            <div class="resource-title">{idx}. {title} ({publisher})</div>
+        """
+        
+        if score_info['strongly_preferred']:
+            sp_text = ", ".join(score_info['strongly_preferred'])
+            html += f'<div class="strongly-preferred">✓ Strongly Preferred: {sp_text}</div>'
+        
+        if score_info['somewhat_preferred']:
+            swp_text = ", ".join(score_info['somewhat_preferred'])
+            html += f'<div class="somewhat-preferred">○ Somewhat Preferred: {swp_text}</div>'
+        
+        html += '<div class="links">'
+        
+        catalog_url = resource['Catalog URL']
+        if catalog_url and catalog_url.strip():
+            html += f'<a href="{catalog_url}">View in Law Library Catalog</a>'
+        
+        digital_url = resource['Digital Resource URL']
+        if digital_url and digital_url.strip():
+            html += f'<a href="{digital_url}">View Digital Resource</a>'
+        
+        html += '</div></div>'
+    
+    html += """
+    </body>
+    </html>
+    """
+    return html
+
+def display_results(results: List[Dict], subject: str = None, formats: List[str] = None):
     """Display the sorted and formatted results"""
     if not results:
         st.warning("No resources match your criteria. Try adjusting your preferences.")
         return
     
     st.markdown("---")
-    st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
+    
+    # Add PDF export button
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
+    with col2:
+        if subject and formats:
+            pdf_html = generate_pdf_html(results, subject, formats)
+            st.download_button(
+                label="📄 Save as PDF",
+                data=pdf_html,
+                file_name="study_aid_recommendations.html",
+                mime="text/html",
+                help="Download as HTML file, then use your browser's Print to PDF function"
+            )
+    
     st.markdown("Resources are displayed according to how well the resource matches your preferences.")
     
     for idx, result in enumerate(results, 1):
@@ -199,16 +328,16 @@ def display_results(results: List[Dict]):
             st.markdown(f'<div class="resource-title">{title} ({publisher})</div>', 
                        unsafe_allow_html=True)
             
-            # Must Have content types
-            if score_info['must_have']:
-                must_have_text = ", ".join(score_info['must_have'])
-                st.markdown(f'<div class="content-section must-have">✓ Must Have: {must_have_text}</div>', 
+            # Strongly Preferred content types
+            if score_info['strongly_preferred']:
+                sp_text = ", ".join(score_info['strongly_preferred'])
+                st.markdown(f'<div class="content-section must-have">✓ Strongly Preferred: {sp_text}</div>', 
                            unsafe_allow_html=True)
             
-            # Neutral content types
-            if score_info['neutral']:
-                neutral_text = ", ".join(score_info['neutral'])
-                st.markdown(f'<div class="content-section neutral">○ Also includes: {neutral_text}</div>', 
+            # Somewhat Preferred content types
+            if score_info['somewhat_preferred']:
+                swp_text = ", ".join(score_info['somewhat_preferred'])
+                st.markdown(f'<div class="content-section neutral">○ Somewhat Preferred: {swp_text}</div>', 
                            unsafe_allow_html=True)
             
             # Links
@@ -228,6 +357,7 @@ def display_results(results: List[Dict]):
                     st.markdown(f'[🔗 View the Digital Resource]({digital_url})')
             
             st.markdown("---")
+
 
 def main():
     # Title and description
@@ -270,7 +400,7 @@ def main():
                 study_formats.append("Physical book")
         
         st.markdown('<p class="question-text">3. What specific content do you want to see in your study aid?</p>', unsafe_allow_html=True)
-        st.markdown("Select 'Must Have,' 'Neutral,' or 'Do Not Want' for each:")
+        st.markdown("Select your preference for each type of content:")
         
         preferences = {}
         
@@ -281,8 +411,8 @@ def main():
             # Radio button with hidden label
             preferences[question] = st.radio(
                 question,  # Keep for accessibility, but will style to hide
-                ["Must Have", "Neutral", "Do Not Want"],
-                index=1,  # Default to Neutral
+                ["Strongly Preferred", "Somewhat Preferred", "No Preference"],
+                index=2,  # Default to No Preference
                 key=f"pref_{i}",
                 horizontal=True,
                 label_visibility="collapsed"  # Hide the label since we show it above
@@ -324,7 +454,7 @@ def main():
         results.sort(key=lambda x: (-x['score_info']['score'], x['title'].lower()))
         
         # Display results
-        display_results(results)
+        display_results(results, subject, study_formats)
 
 if __name__ == "__main__":
     main()
