@@ -1,5 +1,28 @@
 # Changelog - Law Study Aid Finder Updates
 
+## Version 1.5 - January 29, 2026
+
+### Bug Fixes & Layout Updates
+
+#### 1. Fixed Blank Page Issue ✅
+**Issue**: "Open Results in New Page" button opened a blank page
+**Fix**: Changed from data URI approach to JavaScript window.open method
+**Result**: Results now properly display in new tab with all content visible
+
+#### 2. Question 2 Layout Updated ✅
+**Before**: Checkboxes in 2x2 grid layout
+**After**: Single column list
+
+**New order:**
+1. Digital book/e-book
+2. Physical book
+3. Audio Lectures
+4. Video Lectures
+
+Cleaner, more readable vertical layout for study format selection.
+
+---
+
 ## Version 1.4 - January 29, 2026
 
 ### New Features & Updates
@@ -9,7 +32,7 @@
 
 Users can now view and print their personalized recommendations:
 - **"📄 Open Results in New Page" button** appears below the results description
-- Opens results in a new browser tab (not a download)
+- Opens results in a new browser tab
 - New page includes clickable link to open print dialog
 - Professional formatting optimized for printing/saving as PDF
 - Includes all recommendation details and links

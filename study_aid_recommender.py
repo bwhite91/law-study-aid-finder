@@ -324,15 +324,25 @@ def display_results(results: List[Dict], subject: str = None, formats: List[str]
     
     # Add button to open results in new page (moved under description)
     if subject and formats:
-        import base64
+        import json
         pdf_html = generate_pdf_html(results, subject, formats)
-        b64_html = base64.b64encode(pdf_html.encode()).decode()
-        href = f'data:text/html;base64,{b64_html}'
+        # Escape the HTML for JavaScript
+        escaped_html = json.dumps(pdf_html)
         
         st.markdown(
-            f'<a href="{href}" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; '
-            f'background-color: #1f77b4; color: white; text-decoration: none; border-radius: 0.3rem; '
-            f'font-weight: 500; margin-top: 0.5rem; margin-bottom: 1rem;">📄 Open Results in New Page</a>',
+            f"""
+            <script>
+            function openResultsPage() {{
+                var newWindow = window.open('', '_blank');
+                newWindow.document.write({escaped_html});
+                newWindow.document.close();
+            }}
+            </script>
+            <button onclick="openResultsPage()" style="display: inline-block; padding: 0.5rem 1rem; 
+            background-color: #1f77b4; color: white; border: none; border-radius: 0.3rem; 
+            font-weight: 500; margin-top: 0.5rem; margin-bottom: 1rem; cursor: pointer; 
+            font-size: 1rem;">📄 Open Results in New Page</button>
+            """,
             unsafe_allow_html=True
         )
     
@@ -403,21 +413,17 @@ def main():
         
         st.markdown('<p class="question-text">2. How do you prefer to study? (Select all that apply)</p>', unsafe_allow_html=True)
         
-        # Use checkboxes for multi-select
+        # Use checkboxes for multi-select in a single column
         study_formats = []
-        col1, col2 = st.columns(2)
         
-        with col1:
-            if st.checkbox("Digital book/e-book", key="format_digital"):
-                study_formats.append("Digital book/e-book")
-            if st.checkbox("Video Lectures", key="format_video"):
-                study_formats.append("Video Lectures")
-        
-        with col2:
-            if st.checkbox("Audio Lectures", key="format_audio"):
-                study_formats.append("Audio Lectures")
-            if st.checkbox("Physical book", key="format_physical"):
-                study_formats.append("Physical book")
+        if st.checkbox("Digital book/e-book", key="format_digital"):
+            study_formats.append("Digital book/e-book")
+        if st.checkbox("Physical book", key="format_physical"):
+            study_formats.append("Physical book")
+        if st.checkbox("Audio lectures", key="format_audio"):
+            study_formats.append("Audio Lectures")
+        if st.checkbox("Video lectures", key="format_video"):
+            study_formats.append("Video Lectures")
         
         st.markdown('<p class="question-text">3. What specific content do you want to see in your study aid?</p>', unsafe_allow_html=True)
         st.markdown("Select your preference for each type of content:")
