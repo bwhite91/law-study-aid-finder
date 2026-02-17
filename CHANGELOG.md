@@ -5,21 +5,22 @@
 ### New Features & Updates
 
 #### 1. PDF Export Functionality ✅
-**New Feature**: Save/Print to PDF button
+**New Feature**: Open results in new page with print instructions
 
-Users can now export their personalized recommendations:
-- **"📄 Save as PDF" button** appears at the top of results
-- Downloads as HTML file optimized for printing
-- Use browser's "Print to PDF" function to save
+Users can now view and print their personalized recommendations:
+- **"📄 Open Results in New Page" button** appears below the results description
+- Opens results in a new browser tab (not a download)
+- New page includes clickable link to open print dialog
+- Professional formatting optimized for printing/saving as PDF
 - Includes all recommendation details and links
-- Professional formatting for sharing or reference
 
 **How to use:**
 1. Complete the questionnaire
 2. View results
-3. Click "Save as PDF" button
-4. Open downloaded HTML file
-5. Use browser's Print > Save as PDF
+3. Click "Open Results in New Page" button
+4. Results open in new tab
+5. Click the blue link to open print dialog
+6. Choose "Save as PDF" as your printer
 
 #### 2. Updated Preference Labels ✅
 **Before**: Must Have, Neutral, Do Not Want

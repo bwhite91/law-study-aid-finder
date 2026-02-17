@@ -199,6 +199,22 @@ def generate_pdf_html(results: List[Dict], subject: str, formats: List[str]) -> 
                 color: #333;
                 margin-top: 30px;
             }}
+            .print-instructions {{
+                background-color: #e7f3ff;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                border-left: 4px solid #1f77b4;
+            }}
+            .print-instructions a {{
+                color: #1f77b4;
+                text-decoration: none;
+                font-weight: bold;
+                cursor: pointer;
+            }}
+            .print-instructions a:hover {{
+                text-decoration: underline;
+            }}
             .criteria {{
                 background-color: #f8f9fa;
                 padding: 15px;
@@ -236,11 +252,16 @@ def generate_pdf_html(results: List[Dict], subject: str, formats: List[str]) -> 
             }}
             @media print {{
                 body {{ margin: 20px; }}
+                .print-instructions {{ display: none; }}
             }}
         </style>
     </head>
     <body>
         <h1>📚 Your Recommended Study Aids</h1>
+        
+        <div class="print-instructions">
+            💡 <strong>To save as PDF:</strong> <a href="javascript:window.print()">Click here to open the print dialog</a>, then choose "Save as PDF" as your printer.
+        </div>
         
         <div class="criteria">
             <strong>Your Selections:</strong><br>
@@ -298,23 +319,22 @@ def display_results(results: List[Dict], subject: str = None, formats: List[str]
         return
     
     st.markdown("---")
-    
-    # Add PDF export button
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
-    with col2:
-        if subject and formats:
-            pdf_html = generate_pdf_html(results, subject, formats)
-            st.download_button(
-                label="📄 Save as PDF",
-                data=pdf_html,
-                file_name="study_aid_recommendations.html",
-                mime="text/html",
-                help="Download as HTML file, then use your browser's Print to PDF function"
-            )
-    
+    st.header(f"📚 Your Recommended Study Aids ({len(results)} resources found)")
     st.markdown("Resources are displayed according to how well the resource matches your preferences.")
+    
+    # Add button to open results in new page (moved under description)
+    if subject and formats:
+        import base64
+        pdf_html = generate_pdf_html(results, subject, formats)
+        b64_html = base64.b64encode(pdf_html.encode()).decode()
+        href = f'data:text/html;base64,{b64_html}'
+        
+        st.markdown(
+            f'<a href="{href}" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; '
+            f'background-color: #1f77b4; color: white; text-decoration: none; border-radius: 0.3rem; '
+            f'font-weight: 500; margin-top: 0.5rem; margin-bottom: 1rem;">📄 Open Results in New Page</a>',
+            unsafe_allow_html=True
+        )
     
     for idx, result in enumerate(results, 1):
         resource = result['resource']
