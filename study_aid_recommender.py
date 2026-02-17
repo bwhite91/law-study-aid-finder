@@ -412,7 +412,7 @@ def main():
             preferences[question] = st.radio(
                 question,  # Keep for accessibility, but will style to hide
                 ["Strongly Preferred", "Somewhat Preferred", "No Preference"],
-                index=2,  # Default to No Preference
+                index=1,  # Default to Somewhat Preferred (middle option)
                 key=f"pref_{i}",
                 horizontal=True,
                 label_visibility="collapsed"  # Hide the label since we show it above

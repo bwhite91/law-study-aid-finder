@@ -35,11 +35,10 @@ Users can now export their personalized recommendations:
 - Somewhat Preferred: 0.5 points
 - No Preference: 0 points
 
-#### 3. Default Selection Updated ✅
-**Before**: Default to "Neutral" (middle option)
-**After**: Default to "No Preference" (last option)
+#### 3. Default Selection ✅
+**Default**: "Somewhat Preferred" (middle option)
 
-Encourages users to actively select preferences rather than accept defaults.
+Users start with all content types set to "Somewhat Preferred", allowing them to adjust up or down based on their needs.
 
 ### Display Updates
 
